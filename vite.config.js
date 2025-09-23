@@ -6,6 +6,7 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [tailwindcss(),react()],
+  base: process.env.VITE_BASE_PATH || "/Blood-Bank_Frontend",
 resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
