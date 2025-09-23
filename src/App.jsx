@@ -3,9 +3,9 @@ import { Layout } from './components/Layout/Layout'
 import { ProtectedRoute } from './components/Auth/ProtectedRoute'
 
 // Import pages
-import Home from './Pages/Home'
-import Login from './Pages/Login'
-import Signup from './Pages/Signup'
+import Home from './pages/Home'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
 import Dashboard from './pages/Dashboard'
 import FindDonors from './pages/FindDonors'
 import AllDonors from './pages/AllDonors'
