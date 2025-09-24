@@ -3,6 +3,20 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 class ApiClient {
   constructor() {
     this.baseURL = API_BASE_URL;
+    this.isRefreshing = false;
+    this.failedQueue = [];
+  }
+
+  processQueue(error, token = null) {
+    this.failedQueue.forEach(({ resolve, reject }) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(token);
+      }
+    });
+    
+    this.failedQueue = [];
   }
 
   async request(endpoint, options = {}) {
@@ -26,28 +40,63 @@ class ApiClient {
       const response = await fetch(url, config);
       
       // Handle 401 errors by attempting token refresh
-      if (response.status === 401) {
-        const refreshed = await this.refreshToken();
-        if (refreshed) {
-          // Retry the original request with new token
-          const newToken = localStorage.getItem('accessToken');
-          config.headers.Authorization = `Bearer ${newToken}`;
-          const retryResponse = await fetch(url, config);
-          
-          if (!retryResponse.ok) {
-            throw new Error(`HTTP error! status: ${retryResponse.status}`);
+      if (response.status === 401 && !endpoint.includes('/login') && !endpoint.includes('/refresh')) {
+        if (this.isRefreshing) {
+          // If already refreshing, queue this request
+          return new Promise((resolve, reject) => {
+            this.failedQueue.push({ resolve, reject });
+          }).then(() => {
+            // Retry with new token
+            const newToken = localStorage.getItem('accessToken');
+            config.headers.Authorization = `Bearer ${newToken}`;
+            return fetch(url, config).then(async (retryResponse) => {
+              if (!retryResponse.ok) {
+                throw new Error(`HTTP error! status: ${retryResponse.status}`);
+              }
+              const contentType = retryResponse.headers.get('content-type');
+              if (contentType && contentType.includes('application/json')) {
+                return await retryResponse.json();
+              }
+              return await retryResponse.text();
+            });
+          });
+        }
+
+        this.isRefreshing = true;
+
+        try {
+          const refreshed = await this.refreshToken();
+          if (refreshed) {
+            this.processQueue(null, refreshed);
+            
+            // Retry the original request with new token
+            const newToken = localStorage.getItem('accessToken');
+            config.headers.Authorization = `Bearer ${newToken}`;
+            const retryResponse = await fetch(url, config);
+            
+            if (!retryResponse.ok) {
+              throw new Error(`HTTP error! status: ${retryResponse.status}`);
+            }
+            
+            const contentType = retryResponse.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              return await retryResponse.json();
+            }
+            return await retryResponse.text();
+          } else {
+            // Refresh failed, logout user
+            this.processQueue(new Error('Token refresh failed'), null);
+            localStorage.removeItem('accessToken');
+            window.location.href = '/login';
+            return;
           }
-          
-          const contentType = retryResponse.headers.get('content-type');
-          if (contentType && contentType.includes('application/json')) {
-            return await retryResponse.json();
-          }
-          return await retryResponse.text();
-        } else {
-          // Refresh failed, redirect to login
+        } catch (refreshError) {
+          this.processQueue(refreshError, null);
           localStorage.removeItem('accessToken');
           window.location.href = '/login';
           return;
+        } finally {
+          this.isRefreshing = false;
         }
       }
       
@@ -117,19 +166,26 @@ class ApiClient {
 
   async refreshToken() {
     try {
+      console.log('🔄 Attempting to refresh token...');
       const response = await fetch(`${this.baseURL}/refresh`, {
         method: 'POST',
         credentials: 'include', // Include cookies
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('accessToken', data.access_token);
-        return true;
+        console.log('✅ Token refreshed successfully');
+        return data.access_token;
+      } else {
+        console.log('❌ Token refresh failed:', response.status);
+        return false;
       }
-      return false;
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      console.error('❌ Token refresh error:', error);
       return false;
     }
   }
@@ -143,6 +199,7 @@ class ApiClient {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
       });
+      console.log('✅ Logout successful');
     } catch (error) {
       console.error('Logout request failed:', error);
     } finally {
