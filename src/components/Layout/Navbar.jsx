@@ -31,9 +31,10 @@ export const Navbar = () => {
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               {user && navigation.map((item) => (
                 <Link
-                  key={item.name}
+                  key={`desktop-${item.name}`}
                   to={item.href}
                   className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                  aria-label={`${item.name} (Desktop Navigation)`}
                 >
                   {item.name}
                 </Link>
@@ -47,7 +48,7 @@ export const Navbar = () => {
                 <span className="text-sm text-gray-700">
                   Welcome, {user.name}
                 </span>
-                <Button variant="outline" onClick={logout}>
+                <Button variant="outline" onClick={logout} aria-label="Logout (Desktop)">
                   Logout
                 </Button>
               </div>
@@ -97,9 +98,10 @@ export const Navbar = () => {
         <div className="pt-2 pb-3 space-y-1">
           {user && navigation.map((item) => (
             <Link
-              key={item.name}
+              key={`mobile-${item.name}`}
               to={item.href}
               className="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+              aria-label={`${item.name} (Mobile Navigation)`}
             >
               {item.name}
             </Link>
@@ -120,7 +122,7 @@ export const Navbar = () => {
                 <div className="text-sm font-medium text-gray-500">{user.email}</div>
               </div>
               <div className="ml-auto">
-                <Button variant="outline" size="sm" onClick={logout}>
+                <Button variant="outline" size="sm" onClick={logout} aria-label="Logout (Mobile)">
                   Logout
                 </Button>
               </div>
