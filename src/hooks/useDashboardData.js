@@ -336,7 +336,7 @@ const useDashboardData = () => {
   // Initial data fetch on mount
   useEffect(() => {
     fetchDashboardData();
-  }, [fetchDashboardData]);
+  }, []); // Empty dependency array - only run once on mount
 
   // Set up auto-refresh and window focus listeners
   useEffect(() => {
@@ -358,7 +358,7 @@ const useDashboardData = () => {
       window.removeEventListener('focus', handleWindowFocus);
       unregisterRefresh();
     };
-  }, [startAutoRefresh, stopAutoRefresh, handleWindowFocus, registerRefreshCallback, autoRefreshData]);
+  }, []); // Empty dependency array - only run once on mount
 
   // Computed values
   const hasAnyData = userData || donations || bloodBankStats || upcomingDrives;

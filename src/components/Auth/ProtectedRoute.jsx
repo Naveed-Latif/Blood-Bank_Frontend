@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
-export const ProtectedRoute = React.memo(({ children }) => {
+export const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -40,4 +40,4 @@ export const ProtectedRoute = React.memo(({ children }) => {
   }
 
   return children;
-});
+};

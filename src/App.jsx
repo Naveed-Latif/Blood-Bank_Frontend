@@ -13,8 +13,8 @@ import FindDonors from './pages/FindDonors'
 import AllDonors from './pages/AllDonors'
 import DashboardErrorBoundary from './components/ui/DashboardErrorBoundary'
 
-// Memoize the App component to prevent unnecessary re-renders
-const App = React.memo(() => {
+// App component - removed memo to ensure re-renders on route changes
+const App = () => {
   return (
     <NavigationErrorBoundary>
       <div className="min-h-screen bg-gray-50">
@@ -50,7 +50,7 @@ const App = React.memo(() => {
           path="/dashboard"
           element={
             <ProtectedRoute key="dashboard">
-              <Layout>
+              <Layout key="dashboard-layout">
                 <DashboardErrorBoundary>
                   <Dashboard />
                 </DashboardErrorBoundary>
@@ -62,7 +62,7 @@ const App = React.memo(() => {
           path="/find-donors"
           element={
             <ProtectedRoute key="find-donors">
-              <Layout>
+              <Layout key="find-donors-layout">
                 <FindDonors />
               </Layout>
             </ProtectedRoute>
@@ -72,7 +72,7 @@ const App = React.memo(() => {
           path="/all-donors"
           element={
             <ProtectedRoute key="all-donors">
-              <Layout>
+              <Layout key="all-donors-layout">
                 <AllDonors />
               </Layout>
             </ProtectedRoute>
@@ -82,6 +82,6 @@ const App = React.memo(() => {
       </div>
     </NavigationErrorBoundary>
   )
-})
+}
 
 export default App
