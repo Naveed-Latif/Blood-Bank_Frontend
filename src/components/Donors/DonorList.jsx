@@ -3,8 +3,13 @@ import { DonorCard } from './DonorCard';
 import { Button } from '@/components/ui/Button';
 import { api } from '@/lib/api';
 
-// Stable default object to prevent re-renders
-const DEFAULT_SEARCH_FILTERS = { bloodType: '', location: '', radius: '' };
+// Stable default object to prevent re-renders - Updated with availableOnly
+const DEFAULT_SEARCH_FILTERS = { 
+  bloodType: '', 
+  location: '', 
+  radius: '', 
+  availableOnly: false 
+};
 
 // Helper function to calculate distance between two coordinates (Haversine formula)
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -19,19 +24,21 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * c; // Distance in kilometers
 };
 
-export const DonorList = ({ searchFilters = DEFAULT_SEARCH_FILTERS }) => {
+export const DonorList = ({ searchFilters = DEFAULT_SEARCH_FILTERS, onFilterChange }) => {
   const [donors, setDonors] = useState([]);
   const [filteredDonors, setFilteredDonors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [internalFilters, setInternalFilters] = useState(DEFAULT_SEARCH_FILTERS);
   const isInitialized = useRef(false);
 
-  // Memoize searchFilters to prevent infinite loops
+  // Merge external and internal filters, prioritizing external filters
   const stableSearchFilters = useMemo(() => ({
-    bloodType: searchFilters.bloodType || '',
-    location: searchFilters.location || '',
-    radius: searchFilters.radius || ''
-  }), [searchFilters.bloodType, searchFilters.location, searchFilters.radius]);
+    bloodType: searchFilters.bloodType || internalFilters.bloodType || '',
+    location: searchFilters.location || internalFilters.location || '',
+    radius: searchFilters.radius || internalFilters.radius || '',
+    availableOnly: searchFilters.availableOnly !== undefined ? searchFilters.availableOnly : internalFilters.availableOnly
+  }), [searchFilters.bloodType, searchFilters.location, searchFilters.radius, searchFilters.availableOnly, internalFilters]);
 
   useEffect(() => {
     if (!isInitialized.current) {
@@ -74,12 +81,14 @@ export const DonorList = ({ searchFilters = DEFAULT_SEARCH_FILTERS }) => {
       });
     }
 
-    // Filter by availability (last donation more than 56 days ago or never donated)
-    filtered = filtered.filter(donor => {
-      if (!donor.last_donation_date) return true;
-      const daysSince = Math.floor((new Date() - new Date(donor.last_donation_date)) / (1000 * 60 * 60 * 24));
-      return daysSince >= 56;
-    });
+    // Apply availability filter only if requested
+    if (stableSearchFilters.availableOnly) {
+      filtered = filtered.filter(donor => {
+        if (!donor.last_donation_date) return true;
+        const daysSince = Math.floor((new Date() - new Date(donor.last_donation_date)) / (1000 * 60 * 60 * 24));
+        return daysSince >= 56;
+      });
+    }
 
     setFilteredDonors(filtered);
   }, [donors, stableSearchFilters]);
@@ -102,22 +111,35 @@ export const DonorList = ({ searchFilters = DEFAULT_SEARCH_FILTERS }) => {
     }
   };
 
+  // Handle availability toggle
+  const handleAvailabilityToggle = () => {
+    const newAvailabilityState = !stableSearchFilters.availableOnly;
+    
+    // Update internal state
+    setInternalFilters(prev => ({
+      ...prev,
+      availableOnly: newAvailabilityState
+    }));
+    
+    // Also notify parent if callback exists
+    if (onFilterChange) {
+      onFilterChange({ availableOnly: newAvailabilityState });
+    }
+  };
 
-
-  // Search function (unused but kept for future functionality)
-  // const handleSearchByBloodGroup = async (bloodGroup) => {
-  //   try {
-  //     setLoading(true);
-  //     const data = await api.getDonorsByBloodGroup(bloodGroup);
-  //     setFilteredDonors(data);
-  //     setError(null);
-  //   } catch (_error) {
-  //     // Failed to search donors - only log in development
-  //     setError('Failed to search donors');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  // Count available vs total donors for display
+  const getAvailabilityStats = () => {
+    const availableDonors = donors.filter(donor => {
+      if (!donor.last_donation_date) return true;
+      const daysSince = Math.floor((new Date() - new Date(donor.last_donation_date)) / (1000 * 60 * 60 * 24));
+      return daysSince >= 56;
+    });
+    return {
+      available: availableDonors.length,
+      total: donors.length,
+      unavailable: donors.length - availableDonors.length
+    };
+  };
 
   if (loading) {
     return (
@@ -138,32 +160,96 @@ export const DonorList = ({ searchFilters = DEFAULT_SEARCH_FILTERS }) => {
     );
   }
 
+  const availabilityStats = getAvailabilityStats();
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Donors</h2>
-          <p className="text-gray-600">
-            {filteredDonors.length} donor{filteredDonors.length !== 1 ? 's' : ''} found
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <p className="text-gray-600">
+              {filteredDonors.length} donor{filteredDonors.length !== 1 ? 's' : ''} found
+              {stableSearchFilters.availableOnly && (
+                <span className="ml-1 text-green-600 font-medium">
+                  (available only)
+                </span>
+              )}
+            </p>
+            
+            {/* Availability Statistics */}
+            <div className="flex items-center gap-4 text-sm text-gray-500">
+              <span className="flex items-center">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+                {availabilityStats.available} available
+              </span>
+              <span className="flex items-center">
+                <div className="w-2 h-2 bg-red-500 rounded-full mr-1"></div>
+                {availabilityStats.unavailable} not available
+              </span>
+            </div>
+          </div>
+          
+          {/* Active Filters Display */}
+          <div className="flex flex-wrap gap-2 mt-2">
             {stableSearchFilters.bloodType && (
-              <span className="ml-2 text-sm text-blue-600">
-                • Blood Type: {stableSearchFilters.bloodType}
+              <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                Blood Type: {stableSearchFilters.bloodType}
               </span>
             )}
             {stableSearchFilters.location && (
-              <span className="ml-2 text-sm text-blue-600">
-                • Location: {stableSearchFilters.location}
+              <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                Location: {stableSearchFilters.location}
               </span>
             )}
             {stableSearchFilters.radius && (
-              <span className="ml-2 text-sm text-blue-600">
-                • Radius: {stableSearchFilters.radius}km
+              <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                Radius: {stableSearchFilters.radius}km
               </span>
             )}
-          </p>
+          </div>
         </div>
-        <div className="flex space-x-2">
+        
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-2">
+          {/* Availability Toggle Button */}
+          <button 
+            onClick={() => {
+              console.log('Button clicked!'); // Debug log
+              console.log('Current availableOnly:', stableSearchFilters.availableOnly);
+              
+              const newAvailabilityState = !stableSearchFilters.availableOnly;
+              console.log('New availableOnly:', newAvailabilityState);
+              
+              // Update internal state
+              setInternalFilters(prev => {
+                console.log('Updating internal filters:', { ...prev, availableOnly: newAvailabilityState });
+                return { ...prev, availableOnly: newAvailabilityState };
+              });
+              
+              // Also notify parent if callback exists
+              if (onFilterChange) {
+                console.log('Calling parent onFilterChange');
+                onFilterChange({ availableOnly: newAvailabilityState });
+              }
+            }}
+            className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+              stableSearchFilters.availableOnly 
+                ? 'bg-green-600 text-white hover:bg-green-700' 
+                : 'bg-white text-green-600 border border-green-600 hover:bg-green-50'
+            }`}
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {stableSearchFilters.availableOnly ? "Show All" : "Available Only"}
+          </button>
+          
+          {/* Refresh Button */}
           <Button variant="outline" size="sm" onClick={fetchDonors}>
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
             Refresh
           </Button>
         </div>
@@ -176,7 +262,10 @@ export const DonorList = ({ searchFilters = DEFAULT_SEARCH_FILTERS }) => {
           </svg>
           <h3 className="mt-2 text-sm font-medium text-gray-900">No donors found</h3>
           <p className="mt-1 text-sm text-gray-500">
-            Try adjusting your search filters to find more donors.
+            {stableSearchFilters.availableOnly 
+              ? "No available donors match your search criteria. Try removing some filters or toggle 'Show All'." 
+              : "Try adjusting your search filters to find more donors."
+            }
           </p>
         </div>
       ) : (

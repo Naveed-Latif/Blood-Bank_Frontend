@@ -1,6 +1,39 @@
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 
+// Helper function to calculate donor availability
+const getDonorAvailability = (lastDonationDate) => {
+  if (!lastDonationDate) {
+    return {
+      isAvailable: true,
+      status: 'Available',
+      message: 'Ready to donate',
+      badgeColor: 'bg-green-100 text-green-800 border-green-200'
+    };
+  }
+
+  const daysSinceLastDonation = Math.floor(
+    (new Date() - new Date(lastDonationDate)) / (1000 * 60 * 60 * 24)
+  );
+
+  if (daysSinceLastDonation >= 56) {
+    return {
+      isAvailable: true,
+      status: 'Available',
+      message: `Last donated ${daysSinceLastDonation} days ago`,
+      badgeColor: 'bg-green-100 text-green-800 border-green-200'
+    };
+  } else {
+    const daysUntilAvailable = 56 - daysSinceLastDonation;
+    return {
+      isAvailable: false,
+      status: 'Not Available',
+      message: `Available in ${daysUntilAvailable} days`,
+      badgeColor: 'bg-red-100 text-red-800 border-red-200'
+    };
+  }
+};
+
 export const DonorCard = ({ donor }) => {
   const getBloodTypeColor = (bloodType) => {
     const colors = {
@@ -31,20 +64,27 @@ export const DonorCard = ({ donor }) => {
   };
 
   const lastDonationStatus = getLastDonationStatus(donor.last_donation_date);
+  const availability = getDonorAvailability(donor.last_donation_date);
 
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
-          <div>
+          <div className="flex-1">
             <h3 className="text-lg font-semibold text-gray-900">
               {donor.name} {donor.last_name}
             </h3>
             <p className="text-sm text-gray-600">{donor.city}, {donor.country}</p>
           </div>
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getBloodTypeColor(donor.blood_group)}`}>
-            {donor.blood_group}
-          </span>
+          <div className="flex flex-col items-end space-y-2">
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getBloodTypeColor(donor.blood_group)}`}>
+              {donor.blood_group}
+            </span>
+            {/* Availability Badge */}
+            <span className={`px-2 py-1 rounded-full text-xs font-medium border ${availability.badgeColor}`}>
+              {availability.status}
+            </span>
+          </div>
         </div>
         
         <div className="space-y-2 mb-4">
@@ -76,22 +116,34 @@ export const DonorCard = ({ donor }) => {
             <span className="text-gray-600 mr-2">Last donation:</span>
             <span className={lastDonationStatus.color}>{lastDonationStatus.text}</span>
           </div>
+
+          {/* Availability Status Details */}
+          <div className="flex items-center text-sm">
+            <span className="text-gray-600 mr-2">Availability:</span>
+            <span className={availability.isAvailable ? 'text-green-600' : 'text-red-600'}>
+              {availability.message}
+            </span>
+          </div>
         </div>
         
         <div className="flex space-x-2">
           <Button 
             size="sm" 
-            className="flex-1"
+            className={`flex-1 ${!availability.isAvailable ? 'opacity-50' : ''}`}
             onClick={() => window.open(`tel:${donor.phone_number}`, '_self')}
+            disabled={!availability.isAvailable}
+            title={!availability.isAvailable ? availability.message : `Call ${donor.name}`}
           >
-            Call
+            {availability.isAvailable ? 'Call' : 'Not Available'}
           </Button>
           {donor.email && (
             <Button 
               variant="outline" 
               size="sm" 
-              className="flex-1"
+              className={`flex-1 ${!availability.isAvailable ? 'opacity-50' : ''}`}
               onClick={() => window.open(`mailto:${donor.email}`, '_self')}
+              disabled={!availability.isAvailable}
+              title={!availability.isAvailable ? availability.message : `Email ${donor.name}`}
             >
               Email
             </Button>
