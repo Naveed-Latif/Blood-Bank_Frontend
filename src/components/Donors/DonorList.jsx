@@ -1,50 +1,44 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { DonorCard } from './DonorCard';
 import { Button } from '@/components/ui/Button';
 import { api } from '@/lib/api';
 
-export const DonorList = ({ searchFilters = {} }) => {
+// Stable default object to prevent re-renders
+const DEFAULT_SEARCH_FILTERS = { bloodType: '', location: '' };
+
+export const DonorList = ({ searchFilters = DEFAULT_SEARCH_FILTERS }) => {
   const [donors, setDonors] = useState([]);
   const [filteredDonors, setFilteredDonors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const isInitialized = useRef(false);
+
+  // Memoize searchFilters to prevent infinite loops
+  const stableSearchFilters = useMemo(() => ({
+    bloodType: searchFilters.bloodType || '',
+    location: searchFilters.location || ''
+  }), [searchFilters.bloodType, searchFilters.location]);
 
   useEffect(() => {
-    fetchDonors();
+    if (!isInitialized.current) {
+      fetchDonors();
+      isInitialized.current = true;
+    }
   }, []);
 
   useEffect(() => {
-    filterDonors();
-  }, [searchFilters, donors]);
+    // Only filter if we have donors and the component is initialized
+    if (!isInitialized.current || donors.length === 0) return;
 
-  const fetchDonors = async () => {
-    try {
-      setLoading(true);
-      const data = await api.getDonors();
-      setDonors(data);
-      setFilteredDonors(data);
-      setError(null);
-    } catch (error) {
-      console.error('Failed to fetch donors:', error);
-      setError('Failed to load donors');
-      // Fallback to mock data for development
-      setDonors([]);
-      setFilteredDonors([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterDonors = () => {
     let filtered = [...donors];
 
-    if (searchFilters.bloodType) {
-      filtered = filtered.filter(donor => donor.blood_group === searchFilters.bloodType);
+    if (stableSearchFilters.bloodType) {
+      filtered = filtered.filter(donor => donor.blood_group === stableSearchFilters.bloodType);
     }
 
-    if (searchFilters.location) {
+    if (stableSearchFilters.location) {
       filtered = filtered.filter(donor => 
-        donor.city.toLowerCase().includes(searchFilters.location.toLowerCase())
+        donor.city.toLowerCase().includes(stableSearchFilters.location.toLowerCase())
       );
     }
 
@@ -56,21 +50,42 @@ export const DonorList = ({ searchFilters = {} }) => {
     });
 
     setFilteredDonors(filtered);
-  };
+  }, [donors, stableSearchFilters]);
 
-  const handleSearchByBloodGroup = async (bloodGroup) => {
+  const fetchDonors = async () => {
     try {
       setLoading(true);
-      const data = await api.getDonorsByBloodGroup(bloodGroup);
+      const data = await api.getDonors();
+      setDonors(data);
       setFilteredDonors(data);
       setError(null);
-    } catch (error) {
-      console.error('Failed to search donors:', error);
-      setError('Failed to search donors');
+    } catch (_error) {
+      // Failed to fetch donors - only log in development
+      setError('Failed to load donors');
+      // Fallback to mock data for development
+      setDonors([]);
+      setFilteredDonors([]);
     } finally {
       setLoading(false);
     }
   };
+
+
+
+  // Search function (unused but kept for future functionality)
+  // const handleSearchByBloodGroup = async (bloodGroup) => {
+  //   try {
+  //     setLoading(true);
+  //     const data = await api.getDonorsByBloodGroup(bloodGroup);
+  //     setFilteredDonors(data);
+  //     setError(null);
+  //   } catch (_error) {
+  //     // Failed to search donors - only log in development
+  //     setError('Failed to search donors');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   if (loading) {
     return (
