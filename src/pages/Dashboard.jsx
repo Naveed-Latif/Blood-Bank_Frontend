@@ -171,7 +171,7 @@ export default function Dashboard() {
   const userDisplayName = userData?.name || userData?.username || 'User';
   const totalDonations = userData?.totalDonations || donations?.length || 0;
   const lastDonationDate = userData?.lastDonation?.date || donations?.[0]?.date;
-  const bloodType = getBloodTypeDisplay(userData?.bloodType);
+  const bloodType = getBloodTypeDisplay(userData?.blood_group || userData?.bloodType);
   const nextEligible = calculateNextEligible(lastDonationDate);
 
   return (
