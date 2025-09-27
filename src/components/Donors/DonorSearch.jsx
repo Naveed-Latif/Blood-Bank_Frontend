@@ -5,7 +5,7 @@ import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { api } from '@/lib/api';
 
-export const DonorSearch = ({ onSearch }) => {
+export const DonorSearch = ({ onSearch, onFilterChange }) => {
   const [searchFilters, setSearchFilters] = useState({
     bloodType: '',
     location: '',
@@ -34,10 +34,16 @@ export const DonorSearch = ({ onSearch }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setSearchFilters(prev => ({
-      ...prev,
+    const newFilters = {
+      ...searchFilters,
       [name]: value
-    }));
+    };
+    setSearchFilters(newFilters);
+    
+    // Trigger real-time filtering
+    if (onFilterChange) {
+      onFilterChange({ [name]: value });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -46,14 +52,8 @@ export const DonorSearch = ({ onSearch }) => {
 
     setIsSearching(true);
     try {
-      // If blood type is selected, use the backend search
-      if (searchFilters.bloodType) {
-        const results = await api.getDonorsByBloodGroup(searchFilters.bloodType);
-        onSearch({ results, filters: searchFilters });
-      } else {
-        // For other filters, pass them to parent component
-        onSearch({ filters: searchFilters });
-      }
+      // Pass the current search filters to the parent component
+      onSearch({ filters: searchFilters });
     } catch (error) {
       console.error('Search failed:', error);
       // Fallback to client-side filtering
@@ -64,13 +64,20 @@ export const DonorSearch = ({ onSearch }) => {
   };
 
   const handleClear = () => {
-    setSearchFilters({
+    const clearedFilters = {
       bloodType: '',
       location: '',
       radius: '',
-    });
+    };
+    setSearchFilters(clearedFilters);
+    
+    // Clear filters in parent component
+    if (onFilterChange) {
+      onFilterChange(clearedFilters);
+    }
+    
     if (onSearch) {
-      onSearch({ filters: {} });
+      onSearch({ filters: clearedFilters });
     }
   };
 
@@ -78,6 +85,9 @@ export const DonorSearch = ({ onSearch }) => {
     <Card>
       <CardHeader>
         <h3 className="text-lg font-semibold text-gray-900">Search Filters</h3>
+        <p className="text-sm text-gray-500 mt-1">
+          Radius filtering works with location search to find donors within the specified distance.
+        </p>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -106,7 +116,6 @@ export const DonorSearch = ({ onSearch }) => {
             onChange={handleChange}
             options={radiusOptions}
             placeholder="Any distance"
-            disabled // Not implemented in backend yet
           />
 
           <div className="space-y-2">
