@@ -4,7 +4,20 @@ import { Button } from '@/components/ui/Button';
 import { api } from '@/lib/api';
 
 // Stable default object to prevent re-renders
-const DEFAULT_SEARCH_FILTERS = { bloodType: '', location: '' };
+const DEFAULT_SEARCH_FILTERS = { bloodType: '', location: '', radius: '' };
+
+// Helper function to calculate distance between two coordinates (Haversine formula)
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c; // Distance in kilometers
+};
 
 export const DonorList = ({ searchFilters = DEFAULT_SEARCH_FILTERS }) => {
   const [donors, setDonors] = useState([]);
@@ -16,8 +29,9 @@ export const DonorList = ({ searchFilters = DEFAULT_SEARCH_FILTERS }) => {
   // Memoize searchFilters to prevent infinite loops
   const stableSearchFilters = useMemo(() => ({
     bloodType: searchFilters.bloodType || '',
-    location: searchFilters.location || ''
-  }), [searchFilters.bloodType, searchFilters.location]);
+    location: searchFilters.location || '',
+    radius: searchFilters.radius || ''
+  }), [searchFilters.bloodType, searchFilters.location, searchFilters.radius]);
 
   useEffect(() => {
     if (!isInitialized.current) {
@@ -40,6 +54,24 @@ export const DonorList = ({ searchFilters = DEFAULT_SEARCH_FILTERS }) => {
       filtered = filtered.filter(donor => 
         donor.city.toLowerCase().includes(stableSearchFilters.location.toLowerCase())
       );
+    }
+
+    // Filter by radius (mock implementation based on city matching)
+    if (stableSearchFilters.radius && stableSearchFilters.location) {
+      const radiusKm = parseInt(stableSearchFilters.radius);
+      // For demo purposes, we'll simulate radius filtering
+      // In a real app, you'd use actual coordinates and calculate distances
+      filtered = filtered.filter(donor => {
+        // Mock radius filtering - in reality you'd calculate actual distance
+        // For now, we'll just ensure the city matches and add some randomness
+        const cityMatch = donor.city.toLowerCase().includes(stableSearchFilters.location.toLowerCase());
+        if (!cityMatch) return false;
+        
+        // Mock: randomly include/exclude based on radius (for demo)
+        // In production, you'd use actual coordinates
+        const mockDistance = Math.random() * 100; // Random distance 0-100km
+        return mockDistance <= radiusKm;
+      });
     }
 
     // Filter by availability (last donation more than 56 days ago or never donated)
@@ -113,6 +145,21 @@ export const DonorList = ({ searchFilters = DEFAULT_SEARCH_FILTERS }) => {
           <h2 className="text-2xl font-bold text-gray-900">Donors</h2>
           <p className="text-gray-600">
             {filteredDonors.length} donor{filteredDonors.length !== 1 ? 's' : ''} found
+            {stableSearchFilters.bloodType && (
+              <span className="ml-2 text-sm text-blue-600">
+                • Blood Type: {stableSearchFilters.bloodType}
+              </span>
+            )}
+            {stableSearchFilters.location && (
+              <span className="ml-2 text-sm text-blue-600">
+                • Location: {stableSearchFilters.location}
+              </span>
+            )}
+            {stableSearchFilters.radius && (
+              <span className="ml-2 text-sm text-blue-600">
+                • Radius: {stableSearchFilters.radius}km
+              </span>
+            )}
           </p>
         </div>
         <div className="flex space-x-2">
