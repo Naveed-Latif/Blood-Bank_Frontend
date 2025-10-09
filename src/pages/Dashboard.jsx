@@ -167,10 +167,16 @@ export default function Dashboard() {
     .filter(([_, error]) => error !== null)
     .map(([section, _]) => section.replace(/([A-Z])/g, ' $1').toLowerCase());
 
-  // Extract user data with fallbacks
+// Extract user data with fallbacks
   const userDisplayName = userData?.name || userData?.username || 'User';
   const totalDonations = userData?.totalDonations || donations?.length || 0;
-  const lastDonationDate = userData?.lastDonation?.date || donations?.[0]?.date;
+
+  // Sort donations to find the most recent one
+  const sortedDonations = donations ? [...donations].sort((a, b) => new Date(b.date) - new Date(a.date)) : [];
+  const lastDonationDateFromDonations = sortedDonations.length > 0 ? sortedDonations[0].date : null;
+
+  const lastDonationDate = userData?.last_donation_date || lastDonationDateFromDonations;
+
   const bloodType = getBloodTypeDisplay(userData?.blood_group || userData?.bloodType);
   const nextEligible = calculateNextEligible(lastDonationDate);
 
