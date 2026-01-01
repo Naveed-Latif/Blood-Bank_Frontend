@@ -11,6 +11,7 @@ import Signup from './pages/Signup'
 import Dashboard from './pages/Dashboard'
 import FindDonors from './pages/FindDonors'
 import AllDonors from './pages/AllDonors'
+import UpdateProfile from './pages/UpdateProfile'
 import DashboardErrorBoundary from './components/ui/DashboardErrorBoundary'
 
 // App component - removed memo to ensure re-renders on route changes
@@ -74,6 +75,16 @@ const App = () => {
             <ProtectedRoute key="all-donors">
               <Layout key="all-donors-layout">
                 <AllDonors />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/update-profile"
+          element={
+            <ProtectedRoute key="update-profile">
+              <Layout key="update-profile-layout">
+                <UpdateProfile />
               </Layout>
             </ProtectedRoute>
           }

@@ -236,7 +236,7 @@ class ApiClient {
 
   async updateUser(userData) {
     return this.request('/users/me/profile', {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(userData),
     });
   }

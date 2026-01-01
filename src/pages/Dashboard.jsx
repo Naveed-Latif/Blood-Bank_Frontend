@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import useDashboardData from '../hooks/useDashboardData';
@@ -87,6 +88,7 @@ const StatCard = ({ title, value, color, error, onRetry, isLoading }) => {
 
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const {
     userData,
     donations,
@@ -340,7 +342,7 @@ export default function Dashboard() {
                 liveAnnouncer.announce('Schedule donation feature coming soon');
               }}
               onUpdateProfile={() => {
-                liveAnnouncer.announce('Update profile feature coming soon');
+                navigate('/update-profile');
               }}
             />
           </section>

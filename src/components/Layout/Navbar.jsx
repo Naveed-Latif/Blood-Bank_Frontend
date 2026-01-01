@@ -11,6 +11,7 @@ export const Navbar = () => {
     { name: 'Dashboard', href: '/dashboard' },
     { name: 'Find Donors', href: '/find-donors' },
     { name: 'All Donors', href: '/all-donors' },
+    { name: 'Profile', href: '/update-profile' },
   ];
 
   return (
@@ -20,9 +21,7 @@ export const Navbar = () => {
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
               <Link to="/" className="flex items-center">
-                <div className="h-8 w-8 bg-red-600 rounded flex items-center justify-center">
-                  <span className="text-white font-bold">B</span>
-                </div>
+                <img src="public/logo.png" alt="" />
                 <span className="ml-2 text-xl font-bold text-gray-900">
                   Blood Donation
                 </span>
