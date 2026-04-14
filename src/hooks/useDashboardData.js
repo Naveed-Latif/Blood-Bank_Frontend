@@ -333,10 +333,9 @@ const useDashboardData = () => {
     autoRefreshData();
   }, [autoRefreshData]);
 
-  // Initial data fetch on mount
   useEffect(() => {
     fetchDashboardData();
-  }, []); // Empty dependency array - only run once on mount
+  }, [fetchDashboardData]); // Keep fetchDashboardData in dependency array
 
   // Set up auto-refresh and window focus listeners
   useEffect(() => {
@@ -347,7 +346,7 @@ const useDashboardData = () => {
     window.addEventListener('focus', handleWindowFocus);
     
     // Register for dashboard refresh events
-    const unregisterRefresh = registerRefreshCallback((_reason) => {
+    const unregisterRefresh = registerRefreshCallback(() => {
       // Dashboard refresh triggered - no logging in production
       autoRefreshData();
     });
@@ -358,7 +357,7 @@ const useDashboardData = () => {
       window.removeEventListener('focus', handleWindowFocus);
       unregisterRefresh();
     };
-  }, []); // Empty dependency array - only run once on mount
+  }, [startAutoRefresh, autoRefreshData, handleWindowFocus, registerRefreshCallback, stopAutoRefresh]); // Added missing dependencies
 
   // Computed values
   const hasAnyData = userData || donations || bloodBankStats || upcomingDrives;

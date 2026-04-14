@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React from 'react';
 
 /**
@@ -76,7 +77,7 @@ export const SkipLink = ({ href, children, className = '' }) => {
     <a
       href={href}
       className={`sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-blue-600 text-white p-2 z-50 ${className}`}
-      onFocus={(e) => {
+      onFocus={() => {
         liveAnnouncer.announce('Skip link focused');
       }}
     >
@@ -88,10 +89,11 @@ export const SkipLink = ({ href, children, className = '' }) => {
 /**
  * Screen reader only text component
  */
-export const ScreenReaderOnly = ({ children, as: Component = 'span' }) => {
+export const ScreenReaderOnly = ({ children, as = 'span' }) => {
+  const Tag = as;
   return (
-    <Component className="sr-only">
+    <Tag className="sr-only">
       {children}
-    </Component>
+    </Tag>
   );
 };

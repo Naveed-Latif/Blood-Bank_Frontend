@@ -4,18 +4,6 @@ import { Button } from './ui/Button';
 import DonationHistorySkeleton, { DonationRecordSkeleton, EmptyDonationHistorySkeleton } from './ui/DonationHistorySkeleton';
 import { InlineError } from './ui/ErrorComponents';
 
-// Helper function to format dates
-const formatDate = (dateString) => {
-  if (!dateString) return 'Unknown date';
-  
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
-};
-
 // Helper function to format time
 const formatTime = (dateString) => {
   if (!dateString) return '';

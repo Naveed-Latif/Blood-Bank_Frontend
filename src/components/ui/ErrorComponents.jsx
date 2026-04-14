@@ -4,7 +4,7 @@ import { Button } from './Button';
 import { SectionError } from './DashboardError';
 
 // Error component for stats cards
-export const StatsCardError = ({ error, onRetry, statName }) => {
+export const StatsCardError = ({ onRetry, statName }) => {
   return (
     <Card className="p-6 border-red-200 bg-red-50">
       <div className="text-center">
@@ -64,7 +64,7 @@ export const UpcomingDrivesError = ({ error, onRetry }) => {
 };
 
 // Error component for user data
-export const UserDataError = ({ error, onRetry }) => {
+export const UserDataError = ({ onRetry }) => {
   return (
     <Card className="p-6 border-red-200 bg-red-50">
       <div className="flex items-center space-x-4">
@@ -92,8 +92,7 @@ export const UserDataError = ({ error, onRetry }) => {
 };
 
 // Inline error component for small sections
-export const InlineError = ({ 
-  error, 
+export const InlineError = ({  
   onRetry, 
   message = 'Failed to load',
   showIcon = true 
@@ -185,14 +184,4 @@ export const PartialDataError = ({
     </Card>
   );
 };
-
-export default {
-  StatsCardError,
-  DonationHistoryError,
-  BloodBankStatsError,
-  UpcomingDrivesError,
-  UserDataError,
-  InlineError,
-  NetworkError,
-  PartialDataError
-};
+

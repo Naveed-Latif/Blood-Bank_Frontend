@@ -9,14 +9,11 @@
     "build:prod": "NODE_ENV=production vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint . --ext js,jsx --fix",
-    "clean": "rimraf dist .vite",
-    "analyze": "npm run build && npx vite-bundle-analyzer dist"
+    "lint:fix": "eslint . --ext js,jsx --fix"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.13",
     "clsx": "^2.1.1",
-    "lucide-react": "^0.544.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.1",
@@ -29,7 +26,6 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.4.0",
-    "rimraf": "^5.0.0",
     "vite": "^7.1.7"
   }
 }

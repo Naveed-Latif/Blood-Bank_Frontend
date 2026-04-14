@@ -86,7 +86,7 @@ export const SignupForm = () => {
       newErrors.password = 'Password must be 8-20 characters long';
     } else if (!/[A-Z]/.test(formData.password)) {
       newErrors.password = 'Password must contain at least one uppercase letter';
-    } else if (!/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?/]/.test(formData.password)) {
+    } else if (!/[!@#$%^&*()_+\-=[\]{}|;:,.<>?/]/.test(formData.password)) {
       newErrors.password = 'Password must contain at least one special character';
     }
     
@@ -119,7 +119,7 @@ export const SignupForm = () => {
         last_donation_date: formData.last_donation_date || null,
       };
 
-      const response = await signup(signupData);
+      await signup(signupData);
       navigate('/dashboard');
     } catch (error) {
       // Handle validation errors from backend

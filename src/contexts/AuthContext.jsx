@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { useDashboardRefresh } from './DashboardRefreshContext';
@@ -40,7 +41,7 @@ export const AuthProvider = ({ children }) => {
         const userData = await api.getCurrentUser();
         setUser(userData);
       }
-    } catch (_error) {
+    } catch {
       // Auth check failed - only log in development
       localStorage.removeItem('accessToken');
     } finally {
@@ -88,7 +89,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await api.logout();
-    } catch (_error) {
+    } catch {
       // Logout error - only log in development
     } finally {
       localStorage.removeItem('accessToken');

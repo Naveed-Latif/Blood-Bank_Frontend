@@ -5,7 +5,7 @@ import { SubtleRefreshIndicator, AnimatedSkeleton, ShimmerLoader } from './Loadi
 /**
  * Loading indicator for stats cards
  */
-export const StatsCardLoader = ({ title, isRefreshing = false }) => {
+export const StatsCardLoader = ({ isRefreshing = false }) => {
   return (
     <Card className="p-6 relative">
       {isRefreshing && (
@@ -130,27 +130,7 @@ export const QuickActionsLoader = ({ isRefreshing = false }) => {
   );
 };
 
-/**
- * Inline section refresh indicator
- */
-export const InlineSectionRefresh = ({ 
-  isRefreshing, 
-  sectionName, 
-  className = '' 
-}) => {
-  if (!isRefreshing) return null;
 
-  return (
-    <div className={`flex items-center space-x-2 text-sm text-blue-600 ${className}`}>
-      <div className="flex space-x-1">
-        <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce"></div>
-        <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-        <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-      </div>
-      <span>Refreshing {sectionName}...</span>
-    </div>
-  );
-};
 
 /**
  * Progress indicator for multi-step loading
@@ -199,12 +179,4 @@ export const MultiStepLoadingIndicator = ({
     </div>
   );
 };
-
-export default {
-  StatsCardLoader,
-  DonationHistoryLoader,
-  BloodBankStatsLoader,
-  QuickActionsLoader,
-  InlineSectionRefresh,
-  MultiStepLoadingIndicator
-};
+

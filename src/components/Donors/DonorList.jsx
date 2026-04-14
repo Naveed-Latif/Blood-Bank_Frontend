@@ -6,19 +6,6 @@ import { api } from '@/lib/api';
 // Stable default object to prevent re-renders
 const DEFAULT_SEARCH_FILTERS = { bloodType: '', location: '', radius: '' };
 
-// Helper function to calculate distance between two coordinates (Haversine formula)
-const calculateDistance = (lat1, lon1, lat2, lon2) => {
-  const R = 6371; // Earth's radius in kilometers
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c; // Distance in kilometers
-};
-
 export const DonorList = ({ searchFilters = DEFAULT_SEARCH_FILTERS }) => {
   const [donors, setDonors] = useState([]);
   const [filteredDonors, setFilteredDonors] = useState([]);
@@ -91,7 +78,8 @@ export const DonorList = ({ searchFilters = DEFAULT_SEARCH_FILTERS }) => {
       setDonors(data);
       setFilteredDonors(data);
       setError(null);
-    } catch (_error) {
+    } catch (e) {
+      if (import.meta.env.MODE === 'development') console.error(e);
       // Failed to fetch donors - only log in development
       setError('Failed to load donors');
       // Fallback to mock data for development

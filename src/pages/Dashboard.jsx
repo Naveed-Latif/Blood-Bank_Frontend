@@ -93,19 +93,15 @@ export default function Dashboard() {
     userData,
     donations,
     bloodBankStats,
-    upcomingDrives,
     loading,
     refreshing,
     error,
     errors,
-    hasAnyError,
     errorDetails,
     retryAttempts,
     partialDataLoaded,
     isOnline,
     connectionQuality,
-    sectionLoading,
-    loadingProgress,
     loadingSteps,
     currentLoadingStep,
     refreshDashboardData,
@@ -159,15 +155,15 @@ export default function Dashboard() {
         error={error}
         onRetry={refreshDashboardData}
         onGoHome={() => window.location.href = '/'}
-        showDetails={process.env.NODE_ENV === 'development'}
+        showDetails={import.meta.env.MODE === 'development'}
       />
     );
   }
 
   // Get failed sections for partial error display
   const failedSections = Object.entries(errors)
-    .filter(([_, error]) => error !== null)
-    .map(([section, _]) => section.replace(/([A-Z])/g, ' $1').toLowerCase());
+    .filter(([, err]) => err !== null)
+    .map(([section]) => section.replace(/([A-Z])/g, ' $1').toLowerCase());
 
   // Extract user data with fallbacks
   const userDisplayName = userData?.name || userData?.username || 'User';
@@ -222,7 +218,7 @@ export default function Dashboard() {
               onRetry={fetchUserData}
               context="User Data"
               retryAttempts={retryAttempts.userData}
-              showDetails={process.env.NODE_ENV === 'development'}
+              showDetails={import.meta.env.MODE === 'development'}
             />
           </div>
         )}

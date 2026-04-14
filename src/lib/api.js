@@ -271,7 +271,7 @@ class ApiClient {
     throw new Error('Donations endpoint not yet implemented in backend');
   }
 
-  async createDonation(donationData) {
+  async createDonation() {
     // This would need to be implemented in your backend
     throw new Error('Create donation endpoint not yet implemented in backend');
   }
@@ -282,13 +282,12 @@ class ApiClient {
     throw new Error('Requests endpoint not yet implemented in backend');
   }
 
-  async createRequest(requestData) {
+  async createRequest() {
     // This would need to be implemented in your backend
     throw new Error('Create request endpoint not yet implemented in backend');
   }
 
-  // Contact endpoints (placeholder - not implemented in your backend yet)
-  async sendMessage(messageData) {
+  async sendMessage() {
     // This would need to be implemented in your backend
     throw new Error('Contact endpoint not yet implemented in backend');
   }
@@ -428,14 +427,9 @@ class ApiClient {
   }
 
   async getUpcomingDrives() {
-    try {
-      // Since there's no blood drives endpoint, return empty array for now
-      // This can be updated when the backend endpoint is available
-      return [];
-    } catch (error) {
-      logApiError('/blood-drives', 'GET', error, { purpose: 'upcoming_drives', implemented: false });
-      throw new Error(`Failed to load upcoming blood drives: ${error.message}`);
-    }
+    // Since there's no blood drives endpoint, return empty array for now
+    // This can be updated when the backend endpoint is available
+    return [];
   }
 }
 

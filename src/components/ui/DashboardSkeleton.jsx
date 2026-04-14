@@ -17,7 +17,7 @@ export const StatsCardSkeleton = () => {
 };
 
 // Skeleton for activity list items
-export const ActivityItemSkeleton = () => {
+const ActivityItemSkeleton = () => {
   return (
     <div className="flex justify-between items-center py-2">
       <SkeletonRect width="w-2/3" height="h-4" />
@@ -27,7 +27,7 @@ export const ActivityItemSkeleton = () => {
 };
 
 // Skeleton for content sections (Recent Activity, Quick Actions)
-export const ContentSectionSkeleton = ({ title, children }) => {
+const ContentSectionSkeleton = ({ children }) => {
   return (
     <Card className="p-6">
       <div className="space-y-4">
@@ -54,7 +54,7 @@ export const RecentActivitySkeleton = () => {
 };
 
 // Skeleton for Quick Actions section
-export const QuickActionsSkeleton = () => {
+const QuickActionsSkeleton = () => {
   return (
     <ContentSectionSkeleton>
       <div className="space-y-3">

@@ -8,7 +8,7 @@ class DashboardErrorBoundary extends React.Component {
     this.state = { hasError: false, error: null, errorInfo: null };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError() {
     // Update state so the next render will show the fallback UI
     return { hasError: true };
   }
@@ -62,7 +62,7 @@ class DashboardErrorBoundary extends React.Component {
                   </Button>
                 </div>
 
-                {process.env.NODE_ENV === 'development' && this.state.error && (
+                {import.meta.env.MODE === 'development' && this.state.error && (
                   <details className="mt-6 text-left">
                     <summary className="cursor-pointer text-red-600 font-medium">
                       Error Details (Development Only)
