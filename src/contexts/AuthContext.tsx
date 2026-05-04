@@ -1,129 +1,94 @@
-/* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useEffect } from 'react';
-import { api } from '@/lib/api';
-import { useDashboardRefresh } from './DashboardRefreshContext';
+import { createContext, useContext, useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import {
+  loginUser,
+  signupUser,
+  logoutUser,
+  getCurrentUser,
+  updateCurrentUser,
+} from "../api/auth.api";
+import { User, AuthContextType, LoginCredentials, SignupData } from "../types";
 
-const AuthContext = createContext({});
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
 };
 
-// Custom hook to safely use dashboard refresh
-const useDashboardRefreshSafe = () => {
-  try {
-    return useDashboardRefresh();
-  } catch {
-    return null;
-  }
-};
-
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  
-  // Get dashboard refresh functions (only available when inside DashboardRefreshProvider)
-  const dashboardRefresh = useDashboardRefreshSafe();
 
+  // Check if user is already logged in on app start
   useEffect(() => {
-    // Check if user is logged in on app start
-    checkAuthStatus();
-  }, []); // checkAuthStatus is stable and doesn't need to be in deps
-
-  const checkAuthStatus = async () => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      if (token) {
-        const userData = await api.getCurrentUser();
-        setUser(userData);
+    const checkAuth = async () => {
+      try {
+        const token = localStorage.getItem("Token");
+        if (token) {
+          const userData = await getCurrentUser();
+          setUser(userData);
+        }
+      } catch {
+        localStorage.removeItem("Token");
+      } finally {
+        setLoading(false);
       }
-    } catch {
-      // Auth check failed - only log in development
-      localStorage.removeItem('accessToken');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    checkAuth();
+  }, []);
 
-  const login = async (username, password) => {
+  const login = async ({ username, password }: LoginCredentials) => {
     try {
-      await api.login(username, password);
-      
-      // Get user data after successful login
-      const userData = await api.getCurrentUser();
+      await loginUser(username, password);
+      const userData = await getCurrentUser();
       setUser(userData);
-      
-      // Trigger dashboard refresh after login
-      if (dashboardRefresh) {
-        dashboardRefresh.refreshAfterLogin();
-      }
-      
-      return userData;
-    } catch (error) {
-      throw new Error(error.message || 'Login failed');
+      toast.success("Welcome back!");
+    } catch (error: unknown) {
+      toast.error("Login failed. Please check your credentials.");
+      throw error;
     }
   };
 
-  const signup = async (userData) => {
+  const signup = async (data: SignupData) => {
     try {
-      await api.signup(userData);
-      
-      // After signup, login the user automatically
-      await login(userData.email || userData.phone_number, userData.password);
-      
-      // Trigger dashboard refresh after signup
-      if (dashboardRefresh) {
-        dashboardRefresh.refreshAfterSignup();
-      }
-      
-      return { success: true };
-    } catch (error) {
-      throw new Error(error.message || 'Signup failed');
+      await signupUser(data);
+      await login({
+        username: data.email || data.phone_number || "",
+        password: data.password,
+      });
+      toast.success("Account created successfully!");
+    } catch (error: unknown) {
+      toast.error("Signup failed. Please try again.");
+      throw error;
     }
   };
 
   const logout = async () => {
     try {
-      await api.logout();
-    } catch {
-      // Logout error - only log in development
+      await logoutUser();
     } finally {
-      localStorage.removeItem('accessToken');
       setUser(null);
+      toast.success("Logged out successfully.");
     }
   };
 
-  const updateUser = async (updatedData) => {
+  const updateUser = async (data: Partial<User>) => {
     try {
-      const response = await api.updateUser(updatedData);
-      setUser(response);
-      
-      // Trigger dashboard refresh after profile update
-      if (dashboardRefresh) {
-        dashboardRefresh.refreshAfterProfileUpdate();
-      }
-      
-      return response;
-    } catch (error) {
-      throw new Error(error.message || 'Update failed');
+      const updated = await updateCurrentUser(data);
+      setUser(updated);
+      toast.success("Profile updated!");
+    } catch (error: unknown) {
+      toast.error("Update failed. Please try again.");
+      throw error;
     }
-  };
-
-  const value = {
-    user,
-    loading,
-    login,
-    signup,
-    logout,
-    updateUser,
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{ user, loading, login, signup, logout, updateUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

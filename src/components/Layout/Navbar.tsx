@@ -1,149 +1,203 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/Button';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
-export const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
+const BloodDropIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className="w-7 h-7 text-red-500"
+  >
+    <path d="M12 2C12 2 4 10.5 4 15a8 8 0 0016 0C20 10.5 12 2 12 2z" />
+  </svg>
+);
+
+const Navbar = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const navigation = [
-    { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Find Donors', href: '/find-donors' },
-    { name: 'All Donors', href: '/all-donors' },
-    { name: 'Profile', href: '/update-profile' },
+  const navLinks = [
+    { name: "Dashboard", href: "/dashboard" },
+    { name: "Find Donors", href: "/find-donors" },
   ];
 
+  const handleLogout = async () => {
+    await logout();
+    navigate("/");
+  };
+
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200">
+    <nav className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link to="/" className="flex items-center">
-                <img src="public/logo.png" alt="" />
-                <span className="ml-2 text-xl font-bold text-gray-900">
-                  Blood Donation
-                </span>
-              </Link>
-            </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              {user && navigation.map((item) => (
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2">
+            <BloodDropIcon />
+            <span className="text-white font-bold text-xl tracking-tight">
+              Blood<span className="text-red-500">Compass</span>
+            </span>
+          </Link>
+
+          {/* Desktop Links */}
+          <div className="hidden md:flex items-center gap-8">
+            {user &&
+              navLinks.map((link) => (
                 <Link
-                  key={`desktop-${item.name}`}
-                  to={item.href}
-                  className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                  aria-label={`${item.name} (Desktop Navigation)`}
+                  key={link.name}
+                  to={link.href}
+                  className="text-gray-300 hover:text-white text-sm font-medium transition-colors duration-200"
                 >
-                  {item.name}
+                  {link.name}
                 </Link>
               ))}
-            </div>
           </div>
-          
-          <div className="hidden sm:ml-6 sm:flex sm:items-center">
+
+          {/* Desktop Auth */}
+          <div className="hidden md:flex items-center gap-4">
             {user ? (
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-700">
-                  Welcome, {user.name}
-                </span>
-                <Button variant="outline" onClick={logout} aria-label="Logout (Desktop)">
-                  Logout
-                </Button>
+              <div className="relative flex items-center gap-4">
+                <div
+                  className="relative"
+                  onMouseEnter={() => setDropdownOpen(true)}
+                  onMouseLeave={() => setDropdownOpen(false)}
+                >
+                  <button className="text-gray-400 text-sm hover:text-white transition-colors duration-200">
+                    {user.name} ▾
+                  </button>
+
+                  {dropdownOpen && (
+                    <div className="absolute right-0 pt-2 w-44 bg-gray-800 border border-gray-700 rounded-lg shadow-lg py-1 z-50">
+                      <Link
+                        to="/dashboard"
+                        className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700"
+                      >
+                        Dashboard
+                      </Link>
+                      <Link
+                        to="/update-profile"
+                        className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700"
+                      >
+                        Update Profile
+                      </Link>
+                      <hr className="border-gray-700 my-1" />
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-gray-700"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
-              <div className="flex items-center space-x-4">
-                <Link to="/login">
-                  <Button variant="ghost">Login</Button>
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/login"
+                  className="text-gray-300 hover:text-white text-sm font-medium transition-colors duration-200"
+                >
+                  Login
                 </Link>
-                <Link to="/signup">
-                  <Button>Sign Up</Button>
+                <Link
+                  to="/signup"
+                  className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+                >
+                  Sign Up
                 </Link>
               </div>
             )}
           </div>
-          
-          <div className="-mr-2 flex items-center sm:hidden">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="bg-white inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-red-500"
-            >
-              <span className="sr-only">Open main menu</span>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden text-gray-400 hover:text-white p-2 rounded-lg"
+          >
+            {isOpen ? (
               <svg
-                className={`${isOpen ? 'hidden' : 'block'} h-6 w-6`}
-                xmlns="http://www.w3.org/2000/svg"
+                className="w-6 h-6"
                 fill="none"
-                viewBox="0 0 24 24"
                 stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
+            ) : (
               <svg
-                className={`${isOpen ? 'block' : 'hidden'} h-6 w-6`}
-                xmlns="http://www.w3.org/2000/svg"
+                className="w-6 h-6"
                 fill="none"
-                viewBox="0 0 24 24"
                 stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               </svg>
-            </button>
-          </div>
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Mobile menu */}
-      <div className={`${isOpen ? 'block' : 'hidden'} sm:hidden`}>
-        <div className="pt-2 pb-3 space-y-1">
-          {user && navigation.map((item) => (
-            <Link
-              key={`mobile-${item.name}`}
-              to={item.href}
-              className="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
-              aria-label={`${item.name} (Mobile Navigation)`}
-            >
-              {item.name}
-            </Link>
-          ))}
-        </div>
-        <div className="pt-4 pb-3 border-t border-gray-200">
-          {user ? (
-            <div className="flex items-center px-4">
-              <div className="flex-shrink-0">
-                <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
-                  <span className="text-red-600 font-medium">
-                    {user.name?.charAt(0)}
-                  </span>
-                </div>
-              </div>
-              <div className="ml-3">
-                <div className="text-base font-medium text-gray-800">{user.name}</div>
-                <div className="text-sm font-medium text-gray-500">{user.email}</div>
-              </div>
-              <div className="ml-auto">
-                <Button variant="outline" size="sm" onClick={logout} aria-label="Logout (Mobile)">
+      {/* Mobile Menu */}
+      {isOpen && (
+        <div className="md:hidden bg-gray-900 border-t border-gray-800 px-4 py-4 space-y-3">
+          {user &&
+            navLinks.map((link) => (
+              <Link
+                key={link.name}
+                to={link.href}
+                onClick={() => setIsOpen(false)}
+                className="block text-gray-300 hover:text-white text-sm font-medium py-2 transition-colors duration-200"
+              >
+                {link.name}
+              </Link>
+            ))}
+
+          <div className="pt-3 border-t border-gray-800">
+            {user ? (
+              <div className="space-y-3">
+                <p className="text-gray-400 text-sm">{user.name}</p>
+                <button
+                  onClick={handleLogout}
+                  className="w-full bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+                >
                   Logout
-                </Button>
+                </button>
               </div>
-            </div>
-          ) : (
-            <div className="space-y-1">
-              <Link
-                to="/login"
-                className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
-              >
-                Login
-              </Link>
-              <Link
-                to="/signup"
-                className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
-              >
-                Sign Up
-              </Link>
-            </div>
-          )}
+            ) : (
+              <div className="space-y-3">
+                <Link
+                  to="/login"
+                  onClick={() => setIsOpen(false)}
+                  className="block text-gray-300 hover:text-white text-sm font-medium py-2"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  onClick={() => setIsOpen(false)}
+                  className="block w-full bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-lg text-center transition-colors duration-200"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </nav>
   );
 };
+
+export default Navbar;

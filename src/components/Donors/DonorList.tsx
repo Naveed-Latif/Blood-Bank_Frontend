@@ -1,70 +1,52 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { DonorCard } from './DonorCard';
-import { Button } from '@/components/ui/Button';
-import { api } from '@/lib/api';
+import { useState, useEffect, useMemo } from "react";
+import { DonorCard } from "./DonorCard";
+import { Button } from "../ui/Button";
+import { getDonors } from "../../api/donor.api";
+import { Donor } from "../../types";
 
-// Stable default object to prevent re-renders
-const DEFAULT_SEARCH_FILTERS = { bloodType: '', location: '', radius: '' };
+const DEFAULT_SEARCH_FILTERS = { bloodType: "", location: "" };
 
 export const DonorList = ({ searchFilters = DEFAULT_SEARCH_FILTERS }) => {
-  const [donors, setDonors] = useState([]);
-  const [filteredDonors, setFilteredDonors] = useState([]);
+  const [donors, setDonors] = useState<Donor[]>([]);
+  const [filteredDonors, setFilteredDonors] = useState<Donor[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const isInitialized = useRef(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Memoize searchFilters to prevent infinite loops
-  const stableSearchFilters = useMemo(() => ({
-    bloodType: searchFilters.bloodType || '',
-    location: searchFilters.location || '',
-    radius: searchFilters.radius || ''
-  }), [searchFilters.bloodType, searchFilters.location, searchFilters.radius]);
+  const stableSearchFilters = useMemo(
+    () => ({
+      bloodType: searchFilters.bloodType || "",
+      location: searchFilters.location || "",
+    }),
+    [searchFilters.bloodType, searchFilters.location],
+  );
 
+  // Fetch on mount
   useEffect(() => {
-    if (!isInitialized.current) {
-      fetchDonors();
-      isInitialized.current = true;
-    }
+    fetchDonors();
   }, []);
 
+  // Filter whenever donors or filters change
   useEffect(() => {
-    // Only filter if we have donors and the component is initialized
-    if (!isInitialized.current || donors.length === 0) return;
-
     let filtered = [...donors];
 
     if (stableSearchFilters.bloodType) {
-      filtered = filtered.filter(donor => donor.blood_group === stableSearchFilters.bloodType);
-    }
-
-    if (stableSearchFilters.location) {
-      filtered = filtered.filter(donor => 
-        donor.city.toLowerCase().includes(stableSearchFilters.location.toLowerCase())
+      filtered = filtered.filter(
+        (donor) => donor.blood_group === stableSearchFilters.bloodType,
       );
     }
 
-    // Filter by radius (mock implementation based on city matching)
-    if (stableSearchFilters.radius && stableSearchFilters.location) {
-      const radiusKm = parseInt(stableSearchFilters.radius);
-      // For demo purposes, we'll simulate radius filtering
-      // In a real app, you'd use actual coordinates and calculate distances
-      filtered = filtered.filter(donor => {
-        // Mock radius filtering - in reality you'd calculate actual distance
-        // For now, we'll just ensure the city matches and add some randomness
-        const cityMatch = donor.city.toLowerCase().includes(stableSearchFilters.location.toLowerCase());
-        if (!cityMatch) return false;
-        
-        // Mock: randomly include/exclude based on radius (for demo)
-        // In production, you'd use actual coordinates
-        const mockDistance = Math.random() * 100; // Random distance 0-100km
-        return mockDistance <= radiusKm;
-      });
+    if (stableSearchFilters.location) {
+      filtered = filtered.filter((donor) =>
+        donor.city.toLowerCase().includes(stableSearchFilters.location.toLowerCase()),
+      );
     }
 
-    // Filter by availability (last donation more than 56 days ago or never donated)
-    filtered = filtered.filter(donor => {
+    filtered = filtered.filter((donor) => {
       if (!donor.last_donation_date) return true;
-      const daysSince = Math.floor((new Date() - new Date(donor.last_donation_date)) / (1000 * 60 * 60 * 24));
+      const daysSince = Math.floor(
+        (Date.now() - new Date(donor.last_donation_date).getTime()) /
+          (1000 * 60 * 60 * 24),
+      );
       return daysSince >= 56;
     });
 
@@ -74,38 +56,18 @@ export const DonorList = ({ searchFilters = DEFAULT_SEARCH_FILTERS }) => {
   const fetchDonors = async () => {
     try {
       setLoading(true);
-      const data = await api.getDonors();
+      const data = await getDonors();
       setDonors(data);
       setFilteredDonors(data);
       setError(null);
     } catch (e) {
-      if (import.meta.env.MODE === 'development') console.error(e);
-      // Failed to fetch donors - only log in development
-      setError('Failed to load donors');
-      // Fallback to mock data for development
+      setError("Failed to load donors");
       setDonors([]);
       setFilteredDonors([]);
     } finally {
       setLoading(false);
     }
   };
-
-
-
-  // Search function (unused but kept for future functionality)
-  // const handleSearchByBloodGroup = async (bloodGroup) => {
-  //   try {
-  //     setLoading(true);
-  //     const data = await api.getDonorsByBloodGroup(bloodGroup);
-  //     setFilteredDonors(data);
-  //     setError(null);
-  //   } catch (_error) {
-  //     // Failed to search donors - only log in development
-  //     setError('Failed to search donors');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   if (loading) {
     return (
@@ -132,10 +94,10 @@ export const DonorList = ({ searchFilters = DEFAULT_SEARCH_FILTERS }) => {
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Donors</h2>
           <p className="text-gray-600">
-            {filteredDonors.length} donor{filteredDonors.length !== 1 ? 's' : ''} found
+            {filteredDonors.length} donor{filteredDonors.length !== 1 ? "s" : ""} found
             {stableSearchFilters.bloodType && (
               <span className="ml-2 text-sm text-blue-600">
-                • Blood Type: {stableSearchFilters.bloodType}
+                • Blood Group: {stableSearchFilters.bloodType}
               </span>
             )}
             {stableSearchFilters.location && (
@@ -143,34 +105,24 @@ export const DonorList = ({ searchFilters = DEFAULT_SEARCH_FILTERS }) => {
                 • Location: {stableSearchFilters.location}
               </span>
             )}
-            {stableSearchFilters.radius && (
-              <span className="ml-2 text-sm text-blue-600">
-                • Radius: {stableSearchFilters.radius}km
-              </span>
-            )}
           </p>
         </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" size="sm" onClick={fetchDonors}>
-            Refresh
-          </Button>
-        </div>
+        <Button variant="outline" size="sm" onClick={fetchDonors}>
+          Refresh
+        </Button>
       </div>
 
       {filteredDonors.length === 0 ? (
         <div className="text-center py-12">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.009-5.824-2.709M15 6.291A7.962 7.962 0 0012 5c-2.34 0-4.29 1.009-5.824 2.709" />
-          </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No donors found</h3>
+          <h3 className="text-sm font-medium text-gray-900">No donors found</h3>
           <p className="mt-1 text-sm text-gray-500">
-            Try adjusting your search filters to find more donors.
+            Try adjusting your search filters.
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredDonors.map((donor) => (
-            <DonorCard key={donor.id || `${donor.name}-${donor.phone_number}`} donor={donor} />
+            <DonorCard key={donor.id} donor={donor} />
           ))}
         </div>
       )}

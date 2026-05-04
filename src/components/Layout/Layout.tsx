@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navbar } from './Navbar';
+import Navbar from './Navbar';
 
 // Layout component - removed memo to ensure re-renders on route changes
 export const Layout = ({ children }) => {

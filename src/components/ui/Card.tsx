@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn } from '../../lib/utils';
 
 export const Card = ({ 
   children, 
@@ -8,7 +8,7 @@ export const Card = ({
   return (
     <div
       className={cn(
-        'bg-white rounded-lg shadow-sm border border-gray-200',
+        'rounded-lg shadow-sm border border-gray-700 bg-gray-800',
         className
       )}
       {...props}
@@ -21,7 +21,7 @@ export const Card = ({
 export const CardHeader = ({ children, className = '', ...props }) => {
   return (
     <div
-      className={cn('px-6 py-4 border-b border-gray-200', className)}
+      className={cn('px-6 py-4 border-b border-gray-700', className)}
       {...props}
     >
       {children}
@@ -43,7 +43,7 @@ export const CardContent = ({ children, className = '', ...props }) => {
 export const CardFooter = ({ children, className = '', ...props }) => {
   return (
     <div
-      className={cn('px-6 py-4 border-t border-gray-200', className)}
+      className={cn('px-6 py-4 border-t border-gray-700', className)}
       {...props}
     >
       {children}

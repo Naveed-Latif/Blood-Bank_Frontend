@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
+import { useAuth } from '../../contexts/AuthContext';
+import { Button } from '../ui/Button';
+import { Input } from '../ui/Input';
+import { Select } from '../ui/Select';
 
 export const UpdateProfileForm = () => {
   const { user, updateUser } = useAuth();
@@ -19,7 +19,7 @@ export const UpdateProfileForm = () => {
     last_donation_date: '',
   });
   
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -31,7 +31,7 @@ export const UpdateProfileForm = () => {
         last_name: user.last_name || '',
         email: user.email || '',
         phone_number: user.phone_number || '',
-        blood_group: user.blood_group || user.bloodType || '',
+        blood_group: user.blood_group || user.blood_type || '',
         city: user.city || '',
         last_donation_date: user.last_donation_date 
           ? new Date(user.last_donation_date).toISOString().split('T')[0]
@@ -71,7 +71,7 @@ export const UpdateProfileForm = () => {
   };
 
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: Record<string, string> = {};
     
     if (!formData.name.trim()) {
       newErrors.name = 'First name is required';
@@ -250,10 +250,7 @@ export const UpdateProfileForm = () => {
           />
         </div>
         
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-          <h3 className="text-sm font-semibold text-blue-900 mb-2">
-            Donation Information
-          </h3>
+        <div className="bg-gray-800 border border-gray-700 rounded-md p-4">
           <Input
             label="Last Donation Date"
             name="last_donation_date"
@@ -263,7 +260,7 @@ export const UpdateProfileForm = () => {
             error={errors.last_donation_date}
             max={new Date().toISOString().split('T')[0]} // Prevent future dates
           />
-          <p className="mt-2 text-xs text-blue-700">
+          <p className="mt-2 text-xs text-gray-400">
             Updating your last donation date helps us track when you're eligible to donate again. 
             You can donate again 8 weeks (56 days) after your last donation.
           </p>

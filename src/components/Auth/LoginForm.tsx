@@ -1,62 +1,66 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { Button } from "../ui/Button";
+import { Input } from "../ui/Input";
 
 export const LoginForm = () => {
   const [formData, setFormData] = useState({
-    username: '', // Can be email or phone number
-    password: '',
+    username: "",
+    password: "",
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<{
+    username?: string;
+    password?: string;
+    general?: string;
+  }>({});
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
   };
 
   const validateForm = () => {
-    const newErrors = {};
-    
+    const newErrors: {
+      username?: string;
+      password?: string;
+      general?: string;
+    } = {};
+
     if (!formData.username) {
-      newErrors.username = 'Email or phone number is required';
+      newErrors.username = "Email or phone number is required";
     }
-    
+
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!validateForm()) return;
-    
     setIsLoading(true);
-    
     try {
-      await login(formData.username, formData.password);
-      navigate('/dashboard');
+      await login({ username: formData.username, password: formData.password });
+      navigate("/dashboard");
     } catch (error) {
-      setErrors({ general: error.message || 'Login failed' });
+      setErrors({ general: error.message || "Login failed" });
     } finally {
       setIsLoading(false);
     }
@@ -65,11 +69,11 @@ export const LoginForm = () => {
   return (
     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
       {errors.general && (
-        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
+        <div className="bg-red-900/30 border border-red-500 text-red-400 px-4 py-3 rounded-md">
           {errors.general}
         </div>
       )}
-      
+
       <div className="space-y-4">
         <Input
           label="Email or Phone Number"
@@ -81,7 +85,7 @@ export const LoginForm = () => {
           placeholder="Enter your email or phone number"
           required
         />
-        
+
         <Input
           label="Password"
           name="password"
@@ -94,28 +98,19 @@ export const LoginForm = () => {
         />
       </div>
 
-      <div className="flex items-center justify-between">
-        <div className="text-sm">
-          <Link to="/forgot-password" className="font-medium text-red-600 hover:text-red-500">
-            Forgot your password?
-          </Link>
-        </div>
-      </div>
-
       <div>
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Signing in...' : 'Sign in'}
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? "Signing in..." : "Sign in"}
         </Button>
       </div>
 
       <div className="text-center">
-        <span className="text-sm text-gray-600">
-          Don't have an account?{' '}
-          <Link to="/signup" className="font-medium text-red-600 hover:text-red-500">
+        <span className="text-sm text-gray-400">
+          Don't have an account?{" "}
+          <Link
+            to="/signup"
+            className="font-medium text-red-500 hover:text-red-400"
+          >
             Sign up
           </Link>
         </span>
