@@ -1,7 +1,7 @@
 import React from 'react';
 
 // Base skeleton component with animation
-const Skeleton = ({ className = '', width, height, ...props }) => {
+const Skeleton = ({ className = '', width = undefined, height = undefined, ...props }: { [x: string]: any; className?: string; width?: any; height?: any }) => {
   const baseClasses = 'animate-pulse bg-gray-200 rounded';
   const sizeClasses = width && height ? '' : 'h-4 w-full';
   const customStyle = width || height ? { width, height } : {};
