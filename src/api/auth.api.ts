@@ -5,7 +5,6 @@ const backendUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const getToken = () => localStorage.getItem("Token");
 
 export const loginUser = async (username: string, password: string) => {
-  console.log(username, password);
   const formData = new URLSearchParams();
   formData.append("username", username);
   formData.append("password", password);
